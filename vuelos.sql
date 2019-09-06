@@ -46,7 +46,7 @@ CREATE table vuelos_programados(
 	CONSTRAINT fk_vuelos_programados_llegada FOREIGN KEY (aeropuerto_llegada) REFERENCES aeropuerto (codigo)
 ) ENGINE=InnoDB;
 
-CREATE TABLE modelo_avion(
+CREATE TABLE modelos_avion(
 	modelo VARCHAR(45) NOT NULL,
 	fabricante VARCHAR(45) NOT NULL,
 	cabinas INT UNSIGNED NOT NULL,
@@ -66,17 +66,18 @@ CREATE TABLE salidas(
 
 	CONSTRAINT fk_salidas_vuelo FOREIGN KEY(vuelo) REFERENCES vuelos_programados(numero),
 
-	CONSTRAINT fk_salidas_avion FOREIGN KEY(modelo_avion) REFERENCES modelo_avion(modelo),
+	CONSTRAINT fk_salidas_avion FOREIGN KEY(modelo_avion) REFERENCES modelos_avion(modelo),
 
 	key(dia)
 ) ENGINE=InnoDB;
 
-CREATE TABLE instancia_vuelo(
+CREATE TABLE instancias_vuelo(
 	vuelo VARCHAR(45) NOT NULL,
+	fecha DATE NOT NULL,
 	dia VARCHAR(2) NOT NULL CONSTRAINT ingresar_dia_instancia_vuelo CHECK(dia IN ('Do','Lu','Ma','Mi','Ju','Vi','Sa')),
 	estado VARCHAR(45) NOT NULL,
 
-	CONSTRAINT pk_instancia_vuelo PRIMARY KEY (vuelo, dia),
+	CONSTRAINT pk_instancia_vuelo PRIMARY KEY (vuelo, fecha),
 
 	CONSTRAINT fk_instancia_vuelo_vuelo FOREIGN KEY(vuelo) REFERENCES salidas(vuelo),
 
@@ -184,3 +185,25 @@ CREATE TABLE reserva_vuelo_clase(
 
 	CONSTRAINT fk_reserva_vuelo_clase_dia FOREIGN KEY(fecha_vuelo) REFERENCES instancia_vuelo(dia)
 ) ENGINE=InnoDB;
+
+CREATE VIEW vuelos_disponibles AS
+SELECT s.vuelo, s.dia, iv.fecha, s.dia, s.hora_sale, s.hora_llega, CONVERT(INT, DATEDIFF(hour, s.hora_sale, s.hora_llega)) AS [tiempo_estimado],
+aps.codigo, aps.nombre, aps.ciudad, aps.estado, aps.pais,
+apl.codigo, apl.nombre, apl.ciudad, apl.estado, apl.pais,
+b.precio, CONVERT(INT, (b.cant_asientos * (1 + b.clase) -
+						(SELECT COUNT(*) FROM reserva_vuelo_clase WHERE ((reserva_vuelo_clase.clase = b.clase) AND (iv.vuelo = reserva_vuelo_clase.vuelo)))))
+FROM (salidas AS s JOIN instancias_vuelo AS iv ON s.vuelo = iv.vuelo)
+
+DROP USER ""@"localhost";
+
+CREATE USER "admin"@"localhost" IDENTIFIED BY "admin";
+GRANT ALL PRIVILEGES ON vuelos.* TO "admin"@"localhost" WITH GRANT OPTION;
+
+CREATE USER "empleado"@"%" IDENTIFIED BY "empleado";
+GRANT SELECT ON vuelos.* TO "empleado"@"localhost";
+GRANT ALL PRIVILEGES ON vuelos.reservas TO "empleado"@"localhost";
+GRANT ALL PRIVILEGES ON vuelos.pasajeros TO "empleado"@"localhost";
+GRANT ALL PRIVILEGES ON vuelos.reserva_vuelo_clase TO "empleado"@"localhost";
+
+CREATE USER "cliente"@"%" IDENTIFIED BY "";
+GRANT SELECT ON vuelos.vuelos_disponibles;
