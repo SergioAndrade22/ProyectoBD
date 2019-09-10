@@ -187,15 +187,23 @@ CREATE TABLE reserva_vuelo_clase(
 ) ENGINE=InnoDB;
 
 CREATE VIEW vuelos_disponibles AS
-SELECT s.vuelo, s.modelo_avion, vp.aeropuerto_salida, vp.aeropuerto_llegada
+SELECT s.vuelo, s.modelo_avion, iv.fecha, s.dia, 
+vp.aeropuerto_salida, a_sale.nombre AS nombre_salida, a_sale.ciudad AS ciudad_salida, a_sale.estado AS estado_salida, a_sale.pais AS pais_salida, 
 
-FROM salidas AS s, vuelos_programados AS vp, aeropuertos AS a_sale, aeropuertos AS a_llega
+vp.aeropuerto_llegada, a_llega.nombre AS nombre_llegada, a_llega.ciudad AS ciudad_llegada, a_llega.estado AS sestado_llegada, a_llega.pais AS pais_llegada, 
 
-WHERE (s.vuelo = vp.numero) AND (vp.aeropuerto_salida = a_sale.codigo) AND (vp.aeropuerto_llegada = a_llega.codigo)
+s.hora_sale, s.hora_llega, MOD((s.hora_llega+24-s.hora_sale),24) AS tiempo_estimado,
+
+b.precio, (b.cant_asientos * (1 + c.porcentaje) - ( SELECT COUNT(*) FROM reserva_vuelo_clase WHERE (reserva_vuelo_clase.vuelo = b.vuelo) AND (reserva_vuelo_clase.clase = b.clase)))
+
+FROM salidas AS s, vuelos_programados AS vp, aeropuertos AS a_sale, aeropuertos AS a_llega,
+instancias_vuelo AS iv, brinda AS b, clases AS c
+
+WHERE (s.vuelo = vp.numero) AND (vp.aeropuerto_salida = a_sale.codigo) AND (vp.aeropuerto_llegada = a_llega.codigo) AND (s.vuelo = iv.vuelo) AND (s.vuelo = b.vuelo) AND (b.vuelo = s.vuelo) AND (c.nombre = b.clase)
 ;
-/*
+
 DROP USER ''@'localhost';
-*/
+
 CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
 GRANT ALL PRIVILEGES ON vuelos.* TO 'admin'@'localhost' WITH GRANT OPTION;
 
