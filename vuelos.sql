@@ -15,7 +15,7 @@ CREATE TABLE ubicacion(
 	KEY(ciudad)
 ) ENGINE=InnoDB;
 
-CREATE TABLE aeropuerto (
+CREATE TABLE aeropuertos (
 	codigo VARCHAR(45) NOT NULL,
 	nombre VARCHAR(45) NOT NULL,
 	telefono VARCHAR(45) NOT NULL,
@@ -41,9 +41,9 @@ CREATE table vuelos_programados(
 
 	CONSTRAINT pk_vuelos_programados PRIMARY KEY (numero),
 
-	CONSTRAINT fk_vuelos_programados_salida FOREIGN KEY (aeropuerto_salida) REFERENCES aeropuerto (codigo),
+	CONSTRAINT fk_vuelos_programados_salida FOREIGN KEY (aeropuerto_salida) REFERENCES aeropuertos (codigo),
 
-	CONSTRAINT fk_vuelos_programados_llegada FOREIGN KEY (aeropuerto_llegada) REFERENCES aeropuerto (codigo)
+	CONSTRAINT fk_vuelos_programados_llegada FOREIGN KEY (aeropuerto_llegada) REFERENCES aeropuertos (codigo)
 ) ENGINE=InnoDB;
 
 CREATE TABLE modelos_avion(
@@ -149,8 +149,8 @@ CREATE TABLE brinda(
 	dia VARCHAR(2) NOT NULL CONSTRAINT ingresar_dia_brinda CHECK(dia IN ('Do','Lu','Ma','Mi','Ju','Vi','Sa')),
 	clase VARCHAR(45) NOT NULL,
 	cant_asientos INT UNSIGNED NOT NULL,
-	precio FLOAT(7, 2) UNSIGNED NOT NULL,
-
+	precio DECIMAL(7,2) NOT NULL,
+	
 	CONSTRAINT pk_brinda PRIMARY KEY(vuelo, dia, clase),
 
 	CONSTRAINT fk_vuelo_vuelo FOREIGN KEY(vuelo) REFERENCES salidas(vuelo),
@@ -181,29 +181,29 @@ CREATE TABLE reserva_vuelo_clase(
 
 	CONSTRAINT fk_reserva_vuelo_clase_numero FOREIGN KEY(numero) REFERENCES reservas(numero),
 
-	CONSTRAINT fk_reserva_vuelo_clase_vuelo FOREIGN KEY(vuelo) REFERENCES instancia_vuelo(vuelo),
+	CONSTRAINT fk_reserva_vuelo_clase_vuelo FOREIGN KEY(vuelo) REFERENCES instancias_vuelo(vuelo),
 
-	CONSTRAINT fk_reserva_vuelo_clase_dia FOREIGN KEY(fecha_vuelo) REFERENCES instancia_vuelo(dia)
+	CONSTRAINT fk_reserva_vuelo_clase_dia FOREIGN KEY(fecha_vuelo) REFERENCES instancias_vuelo(dia)
 ) ENGINE=InnoDB;
 
 CREATE VIEW vuelos_disponibles AS
-SELECT s.vuelo, s.dia, iv.fecha, s.dia, s.hora_sale, s.hora_llega, CONVERT(INT, DATEDIFF(hour, s.hora_sale, s.hora_llega)) AS [tiempo_estimado],
-aps.codigo, aps.nombre, aps.ciudad, aps.estado, aps.pais,
-apl.codigo, apl.nombre, apl.ciudad, apl.estado, apl.pais,
-b.precio, CONVERT(INT, (b.cant_asientos * (1 + b.clase) -
-						(SELECT COUNT(*) FROM reserva_vuelo_clase WHERE ((reserva_vuelo_clase.clase = b.clase) AND (iv.vuelo = reserva_vuelo_clase.vuelo)))))
-FROM (salidas AS s JOIN instancias_vuelo AS iv ON s.vuelo = iv.vuelo)
+SELECT s.vuelo, s.modelo_avion, vp.aeropuerto_salida, vp.aeropuerto_llegada
 
-DROP USER ""@"localhost";
+FROM salidas AS s, vuelos_programados AS vp, aeropuertos AS a_sale, aeropuertos AS a_llega
 
-CREATE USER "admin"@"localhost" IDENTIFIED BY "admin";
-GRANT ALL PRIVILEGES ON vuelos.* TO "admin"@"localhost" WITH GRANT OPTION;
+WHERE (s.vuelo = vp.numero) AND (vp.aeropuerto_salida = a_sale.codigo) AND (vp.aeropuerto_llegada = a_llega.codigo)
+;
+/*
+DROP USER ''@'localhost';
+*/
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
+GRANT ALL PRIVILEGES ON vuelos.* TO 'admin'@'localhost' WITH GRANT OPTION;
 
-CREATE USER "empleado"@"%" IDENTIFIED BY "empleado";
-GRANT SELECT ON vuelos.* TO "empleado"@"localhost";
-GRANT ALL PRIVILEGES ON vuelos.reservas TO "empleado"@"localhost";
-GRANT ALL PRIVILEGES ON vuelos.pasajeros TO "empleado"@"localhost";
-GRANT ALL PRIVILEGES ON vuelos.reserva_vuelo_clase TO "empleado"@"localhost";
+CREATE USER 'empleado'@'%' IDENTIFIED BY 'empleado';
+GRANT SELECT ON vuelos.* TO 'empleado'@'%';
+GRANT ALL PRIVILEGES ON vuelos.reservas TO 'empleado'@'%';
+GRANT ALL PRIVILEGES ON vuelos.pasajeros TO 'empleado'@'%';
+GRANT ALL PRIVILEGES ON vuelos.reserva_vuelo_clase TO 'empleado'@'%';
 
-CREATE USER "cliente"@"%" IDENTIFIED BY "";
-GRANT SELECT ON vuelos.vuelos_disponibles;
+CREATE USER 'cliente'@'%' IDENTIFIED BY '';
+GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%';
