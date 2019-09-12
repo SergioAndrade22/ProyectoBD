@@ -1,0 +1,5 @@
+insert into aeropuertos (codigo, nombre, telefono, direccion, pais, estado, ciudad) values ('59898-123', 'NuVasive, Inc.', '256-501-9047', '98525 Hooker Place', 'United States', 'Alabama', 'Huntsville');
+insert into aeropuertos (codigo, nombre, telefono, direccion, pais, estado, ciudad) values ('50268-110', 'Old Dominion Freight Line, Inc.', '347-238-5683', '90729 Namekagon Lane', 'United States', 'New York', 'New York City');
+insert into aeropuertos (codigo, nombre, telefono, direccion, pais, estado, ciudad) values ('0093-7242', 'ServiceMaster Global Holdings, Inc.', '205-303-8900', '230 Shopko Trail', 'United States', 'Alabama', 'Birmingham');
+insert into aeropuertos (codigo, nombre, telefono, direccion, pais, estado, ciudad) values ('36987-2698', 'Arthur J. Gallagher & Co.', '917-373-2417', '72232 Prentice Alley', 'United States', 'New York', 'Bronx');
+insert into aeropuertos (codigo, nombre, telefono, direccion, pais, estado, ciudad) values ('36987-2607', 'MannKind Corporation', '251-411-7468', '298 Homewood Street', 'United States', 'Alabama', 'Mobile');
