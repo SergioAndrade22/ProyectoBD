@@ -35,15 +35,22 @@ INSERT INTO salidas (vuelo, dia, hora_sale, hora_llega, modelo_avion) VALUES (4,
 INSERT INTO salidas (vuelo, dia, hora_sale, hora_llega, modelo_avion) VALUES (5, 'Vi', '11:31:05', '9:55:41', 'Spectra');
 
 /*instacias_vuelo*/
-insert into instancias_vuelo (vuelo, fecha, dia, estado) values (1, '2018-10-23 10:45:38', Lu, NULL);
-insert into instancias_vuelo (vuelo, fecha, dia, estado) values (2, '2018-11-22 06:36:02', Ma, NULL);
-insert into instancias_vuelo (vuelo, fecha, dia, estado) values (3, '2019-04-13 19:02:08', Vi, NULL);
-insert into instancias_vuelo (vuelo, fecha, dia, estado) values (4, '2019-06-15 16:56:10', Sa, NULL);
-insert into instancias_vuelo (vuelo, fecha, dia, estado) values (5, '2018-11-30 21:50:38', Mi, NULL);
+insert into instancias_vuelo (vuelo, fecha, dia, estado) values (1, '2018-10-23 10:45:38', Lu, 'a tiempo');
+insert into instancias_vuelo (vuelo, fecha, dia, estado) values (2, '2018-11-22 06:36:02', Ma, 'demorado');
+insert into instancias_vuelo (vuelo, fecha, dia, estado) values (3, '2019-04-13 19:02:08', Vi, 'cancelado');
+insert into instancias_vuelo (vuelo, fecha, dia, estado) values (4, '2019-06-15 16:56:10', Sa, 'a tiempo');
+insert into instancias_vuelo (vuelo, fecha, dia, estado) values (5, '2018-11-30 21:50:38', Mi, 'demorado');
 
 /*clases*/
+insert into clases (nombre, porcentaje) values ('Premium', 0.73);
+insert into clases (nombre, porcentaje) values ('Normal', 0.69);
+insert into clases (nombre, porcentaje) values ('Fea', 0.93);
 
 /*comodidades*/
+insert into comodidades (codigo, descripcion) values (1, 'Comodidad Baja');
+insert into comodidades (codigo, descripcion) values (2, 'Comodidad Media');
+insert into comodidades (codigo, descripcion) values (3, 'Comodidad Alta');
+
 
 /*pasajeros*/
 insert into pasajeros (doc_tipo, doc_nro, apellido, nombre, direccion, telefono, nacionalidad) values ('TSS', 36359701, 'Girdlestone', 'Leif', '3 Bultman Point', '305-468-1877', 'Japan');
@@ -51,9 +58,22 @@ insert into pasajeros (doc_tipo, doc_nro, apellido, nombre, direccion, telefono,
 insert into pasajeros (doc_tipo, doc_nro, apellido, nombre, direccion, telefono, nacionalidad) values ('Pasaporte', 22175155, 'Oakinfold', 'Fawne', '859 Superior Drive', '710-159-0501', 'Belarus');
 insert into pasajeros (doc_tipo, doc_nro, apellido, nombre, direccion, telefono, nacionalidad) values ('Identity Card', 33371405, 'Punyer', 'Bellina', '01781 Maple Wood Street', '722-700-9246', 'Czech Republic');
 insert into pasajeros (doc_tipo, doc_nro, apellido, nombre, direccion, telefono, nacionalidad) values ('ID', 19529284, 'Kilminster', 'Wyatan', '987 Sycamore Park', '131-518-6132', 'Canada');
+	
+/*empleados*/
+insert into empleados (legajo, password, doc_tipo, doc_nro, apellido, nombre, direccion, telefono) values (5297, 'kubaFo5luah', 'DNI', 12131991, 'McGuiney', 'Val', '9243 Lillian Alley', '303-199-1333');
+insert into empleados (legajo, password, doc_tipo, doc_nro, apellido, nombre, direccion, telefono) values (6488, 'KXIEvM5a', 'DNI', 44138994, 'Towey', 'Dewitt', '67314 Haas Circle', '114-245-7172');
+insert into empleados (legajo, password, doc_tipo, doc_nro, apellido, nombre, direccion, telefono) values (9932, 'SS7yoDqSj', 'DNI', 26818191, 'Plaide', 'Thurston', '0250 Chinook Lane', '658-515-8242');
+insert into empleados (legajo, password, doc_tipo, doc_nro, apellido, nombre, direccion, telefono) values (5108, '61r6z66', 'DNI', 4584153, 'Duffer', 'Brianne', '92 Tomscot Plaza', '506-910-7763');
+insert into empleados (legajo, password, doc_tipo, doc_nro, apellido, nombre, direccion, telefono) values (1429, 'Mk15vN', 'DNI', 38062912, 'Lempel', 'Mariela', '7406 Mcbride Parkway', '257-203-0648');
 
+/*reservas*/
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (1243, '2018-11-01 22:08:46', '2019-11-20 19:58:52', 'confirmada', 'DNI', 36359701, 5297);
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (1490, '2019-07-10 09:15:52', '2020-07-24 16:39:10', 'en espera', 'DNI', 19529284, 5297);
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (5562, '2019-01-25 13:33:05', '2020-08-28 07:34:20', 'en espera', 'DNI', 33371405, 9932);
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (9341, '2019-06-30 18:08:19', '2019-12-27 11:27:32', 'pagada', 'DNI', 25690192, 6488);
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (4207, '2019-07-03 10:43:32', '2020-05-18 03:17:40', 'pagada', 'DNI', 22175155, 6488);
 
-
+/*brinda*/
 
 
 
