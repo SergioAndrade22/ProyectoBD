@@ -213,5 +213,5 @@ GRANT ALL PRIVILEGES ON vuelos.reservas TO 'empleado'@'%';
 GRANT ALL PRIVILEGES ON vuelos.pasajeros TO 'empleado'@'%';
 GRANT ALL PRIVILEGES ON vuelos.reserva_vuelo_clase TO 'empleado'@'%';
 
-CREATE USER 'cliente'@'%' IDENTIFIED BY '';
+CREATE USER 'cliente'@'%' IDENTIFIED BY 'cliente';
 GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%';
