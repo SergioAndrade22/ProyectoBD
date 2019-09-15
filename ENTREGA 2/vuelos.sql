@@ -26,12 +26,11 @@ CREATE TABLE aeropuertos (
 
 	CONSTRAINT pk_aeropuerto PRIMARY KEY (codigo),
 
-	CONSTRAINT fk_aeropuerto_pais FOREIGN KEY (pais) REFERENCES ubicacion(pais),
+	CONSTRAINT fk_aeropuerto_pais FOREIGN KEY (pais) REFERENCES ubicacion(pais) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_aeropuerto_estado FOREIGN KEY (estado) REFERENCES ubicacion(estado),
+	CONSTRAINT fk_aeropuerto_estado FOREIGN KEY (estado) REFERENCES ubicacion(estado) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_aeropuerto_ciudad FOREIGN KEY (ciudad) REFERENCES ubicacion(ciudad)
-
+	CONSTRAINT fk_aeropuerto_ciudad FOREIGN KEY (ciudad) REFERENCES ubicacion(ciudad) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE table vuelos_programados(
@@ -41,9 +40,9 @@ CREATE table vuelos_programados(
 
 	CONSTRAINT pk_vuelos_programados PRIMARY KEY (numero),
 
-	CONSTRAINT fk_vuelos_programados_salida FOREIGN KEY (aeropuerto_salida) REFERENCES aeropuertos (codigo),
+	CONSTRAINT fk_vuelos_programados_salida FOREIGN KEY (aeropuerto_salida) REFERENCES aeropuertos (codigo) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_vuelos_programados_llegada FOREIGN KEY (aeropuerto_llegada) REFERENCES aeropuertos (codigo)
+	CONSTRAINT fk_vuelos_programados_llegada FOREIGN KEY (aeropuerto_llegada) REFERENCES aeropuertos (codigo) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE modelos_avion(
@@ -64,24 +63,26 @@ CREATE TABLE salidas(
 
 	CONSTRAINT pk_salidas PRIMARY KEY(vuelo, dia),
 
-	CONSTRAINT fk_salidas_vuelo FOREIGN KEY(vuelo) REFERENCES vuelos_programados(numero),
+	CONSTRAINT fk_salidas_vuelo FOREIGN KEY(vuelo) REFERENCES vuelos_programados(numero) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_salidas_avion FOREIGN KEY(modelo_avion) REFERENCES modelos_avion(modelo),
+	CONSTRAINT fk_salidas_avion FOREIGN KEY(modelo_avion) REFERENCES modelos_avion(modelo) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	key(dia)
+	KEY(dia)
 ) ENGINE=InnoDB;
 
 CREATE TABLE instancias_vuelo(
 	vuelo VARCHAR(45) NOT NULL,
 	fecha DATE NOT NULL,
-	dia VARCHAR(2) NOT NULL CONSTRAINT ingresar_dia_instancia_vuelo CHECK(dia IN ('Do','Lu','Ma','Mi','Ju','Vi','Sa')),
+	dia VARCHAR(2) NOT NULL,
 	estado VARCHAR(45) NOT NULL,
 
 	CONSTRAINT pk_instancia_vuelo PRIMARY KEY (vuelo, fecha),
 
-	CONSTRAINT fk_instancia_vuelo_vuelo FOREIGN KEY(vuelo) REFERENCES salidas(vuelo),
+	CONSTRAINT fk_instancia_vuelo_vuelo FOREIGN KEY(vuelo) REFERENCES salidas(vuelo) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_instancia_vuelo_fecha FOREIGN KEY(dia) REFERENCES salidas(dia)
+	CONSTRAINT fk_instancia_vuelo_fecha FOREIGN KEY(dia) REFERENCES salidas(dia) ON DELETE RESTRICT ON UPDATE CASCADE,
+
+	KEY(fecha)
 ) ENGINE=InnoDB;
 
 CREATE TABLE clases(
@@ -93,7 +94,7 @@ CREATE TABLE clases(
 
 CREATE TABLE comodidades(
 	codigo INT UNSIGNED NOT NULL,
-	descrpcion VARCHAR(45) NOT NULL,
+	descripcion VARCHAR(45) NOT NULL,
 
 	CONSTRAINT pk_comodidades PRIMARY KEY(codigo)
 ) ENGINE=InnoDB;
@@ -109,13 +110,13 @@ CREATE TABLE pasajeros(
 
 	CONSTRAINT pk_pasajeros PRIMARY KEY(doc_tipo, doc_nro),
 
-	key(doc_nro),
-	key(doc_tipo)
+	KEY(doc_nro),
+	KEY(doc_tipo)
 ) ENGINE=InnoDB;
 
 CREATE TABLE empleados(
 	legajo BIGINT UNSIGNED NOT NULL,
-	password CHAR(32) NOT NULL,
+	password VARCHAR(32) NOT NULL,
 	doc_tipo VARCHAR(45) NOT NULL,
 	doc_nro BIGINT UNSIGNED NOT NULL,
 	apellido VARCHAR(45) NOT NULL,
@@ -137,60 +138,62 @@ CREATE TABLE reservas(
 
 	CONSTRAINT pk_reservas PRIMARY KEY(numero),
 
-	CONSTRAINT fk_reservas_doc_tipo FOREIGN KEY(doc_tipo) REFERENCES pasajeros(doc_tipo),
+	CONSTRAINT fk_reservas_doc_tipo FOREIGN KEY(doc_tipo) REFERENCES pasajeros(doc_tipo) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_reservas_doc_nro FOREIGN KEY(doc_nro) REFERENCES pasajeros(doc_nro),
+	CONSTRAINT fk_reservas_doc_nro FOREIGN KEY(doc_nro) REFERENCES pasajeros(doc_nro) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_reservas_legajo FOREIGN KEY(legajo) REFERENCES empleados(legajo)
+	CONSTRAINT fk_reservas_legajo FOREIGN KEY(legajo) REFERENCES empleados(legajo) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE brinda(
 	vuelo VARCHAR(45) NOT NULL,
-	dia VARCHAR(2) NOT NULL CONSTRAINT ingresar_dia_brinda CHECK(dia IN ('Do','Lu','Ma','Mi','Ju','Vi','Sa')),
+	dia VARCHAR(2) NOT NULL,
 	clase VARCHAR(45) NOT NULL,
 	cant_asientos INT UNSIGNED NOT NULL,
 	precio DECIMAL(7,2) NOT NULL,
-	
+
 	CONSTRAINT pk_brinda PRIMARY KEY(vuelo, dia, clase),
 
-	CONSTRAINT fk_vuelo_vuelo FOREIGN KEY(vuelo) REFERENCES salidas(vuelo),
+	CONSTRAINT fk_vuelo_vuelo FOREIGN KEY(vuelo) REFERENCES salidas(vuelo) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_vuelo_dia FOREIGN KEY(dia) REFERENCES salidas(dia),
+	CONSTRAINT fk_vuelo_dia FOREIGN KEY(dia) REFERENCES salidas(dia) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_vuelo_clase FOREIGN KEY(clase) REFERENCES clases(nombre)
+	CONSTRAINT fk_vuelo_clase FOREIGN KEY(clase) REFERENCES clases(nombre) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE posee(
 	clase VARCHAR(45) NOT NULL,
-	codigo INT UNSIGNED NOT NULL,
+	comodidad INT UNSIGNED NOT NULL,
 
-	CONSTRAINT pk_posee PRIMARY KEY(clase, codigo),
+	CONSTRAINT pk_posee PRIMARY KEY(clase, comodidad),
 
-	CONSTRAINT fk_posee_clase FOREIGN KEY(clase) REFERENCES clases(nombre),
+	CONSTRAINT fk_posee_clase FOREIGN KEY(clase) REFERENCES clases(nombre) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_posee_codigo FOREIGN KEY(codigo) REFERENCES comodidades(codigo)
+	CONSTRAINT fk_posee_codigo FOREIGN KEY(comodidad) REFERENCES comodidades(codigo) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE reserva_vuelo_clase(
 	numero INT UNSIGNED NOT NULL,
 	vuelo VARCHAR(45) NOT NULL,
-	fecha_vuelo VARCHAR(2) NOT NULL CONSTRAINT ingresar_dia_reserva_vuelo_clase CHECK(fecha_vuelo IN ('Do','Lu','Ma','Mi','Ju','Vi','Sa')),
+	fecha_vuelo DATE NOT NULL,
 	clase VARCHAR(45) NOT NULL,
 
 	CONSTRAINT pk_reserva_vuelo_clase PRIMARY KEY(numero, vuelo, fecha_vuelo),
 
-	CONSTRAINT fk_reserva_vuelo_clase_numero FOREIGN KEY(numero) REFERENCES reservas(numero),
+	CONSTRAINT fk_reserva_vuelo_clase_numero FOREIGN KEY(numero) REFERENCES reservas(numero) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_reserva_vuelo_clase_vuelo FOREIGN KEY(vuelo) REFERENCES instancias_vuelo(vuelo),
+	CONSTRAINT fk_reserva_vuelo_clase_vuelo FOREIGN KEY(vuelo) REFERENCES instancias_vuelo(vuelo) ON DELETE RESTRICT ON UPDATE CASCADE,
 
-	CONSTRAINT fk_reserva_vuelo_clase_dia FOREIGN KEY(fecha_vuelo) REFERENCES instancias_vuelo(dia)
+	CONSTRAINT fk_reserva_vuelo_clase_fecha_vuelo FOREIGN KEY(fecha_vuelo) REFERENCES instancias_vuelo(fecha) ON DELETE RESTRICT ON UPDATE CASCADE,
+
+	CONSTRAINT fk_reserva_vuelo_clase_clase FOREIGN KEY(clase) REFERENCES clases(nombre) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE VIEW vuelos_disponibles AS
-SELECT s.vuelo, s.modelo_avion, iv.fecha, s.dia, 
-vp.aeropuerto_salida, a_sale.nombre AS nombre_salida, a_sale.ciudad AS ciudad_salida, a_sale.estado AS estado_salida, a_sale.pais AS pais_salida, 
+SELECT s.vuelo, s.modelo_avion, iv.fecha, s.dia,
+vp.aeropuerto_salida, a_sale.nombre AS nombre_salida, a_sale.ciudad AS ciudad_salida, a_sale.estado AS estado_salida, a_sale.pais AS pais_salida,
 
-vp.aeropuerto_llegada, a_llega.nombre AS nombre_llegada, a_llega.ciudad AS ciudad_llegada, a_llega.estado AS sestado_llegada, a_llega.pais AS pais_llegada, 
+vp.aeropuerto_llegada, a_llega.nombre AS nombre_llegada, a_llega.ciudad AS ciudad_llegada, a_llega.estado AS sestado_llegada, a_llega.pais AS pais_llegada,
 
 s.hora_sale, s.hora_llega, MOD((s.hora_llega+24-s.hora_sale),24) AS tiempo_estimado,
 
