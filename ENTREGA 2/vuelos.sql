@@ -205,8 +205,6 @@ instancias_vuelo AS iv, brinda AS b, clases AS c
 WHERE (s.vuelo = vp.numero) AND (vp.aeropuerto_salida = a_sale.codigo) AND (vp.aeropuerto_llegada = a_llega.codigo) AND (s.vuelo = iv.vuelo) AND (s.vuelo = b.vuelo) AND (c.nombre = b.clase)
 ;
 
-DROP USER ''@'localhost';
-
 CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin';
 GRANT ALL PRIVILEGES ON vuelos.* TO 'admin'@'localhost' WITH GRANT OPTION;
 
