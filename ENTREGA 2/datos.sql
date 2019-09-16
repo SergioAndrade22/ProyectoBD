@@ -37,9 +37,9 @@ INSERT INTO salidas (vuelo, dia, hora_sale, hora_llega, modelo_avion) VALUES (5,
 /*instacias_vuelo*/
 insert into instancias_vuelo (vuelo, fecha, dia, estado) values (1, '2018-10-23 10:45:38', 'Lu', 'a tiempo');
 insert into instancias_vuelo (vuelo, fecha, dia, estado) values (2, '2018-11-22 06:36:02', 'Ma', 'demorado');
-insert into instancias_vuelo (vuelo, fecha, dia, estado) values (3, '2019-04-13 19:02:08', 'Vi', 'cancelado');
-insert into instancias_vuelo (vuelo, fecha, dia, estado) values (4, '2019-06-15 00:17:10', 'Sa', 'a tiempo');
-insert into instancias_vuelo (vuelo, fecha, dia, estado) values (5, '2018-11-30 21:50:38', 'Mi', 'demorado');
+insert into instancias_vuelo (vuelo, fecha, dia, estado) values (3, '2019-04-13 19:02:08', 'Mi', 'cancelado');
+insert into instancias_vuelo (vuelo, fecha, dia, estado) values (4, '2019-06-15 00:17:10', 'Ju', 'a tiempo');
+insert into instancias_vuelo (vuelo, fecha, dia, estado) values (5, '2018-11-30 21:50:38', 'Vi', 'demorado');
 
 /*clases*/
 insert into clases (nombre, porcentaje) values ('Premium', 0.73);
@@ -67,11 +67,11 @@ insert into empleados (legajo, password, doc_tipo, doc_nro, apellido, nombre, di
 insert into empleados (legajo, password, doc_tipo, doc_nro, apellido, nombre, direccion, telefono) values (1429, md5('Mk15vN'), 'DNI', 38062912, 'Lempel', 'Mariela', '7406 Mcbride Parkway', '257-203-0648');
 
 /*reservas*/
-insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (1243, '2018-11-01 22:08:46', '2019-11-20 19:58:52', 'confirmada', 'DNI', 36359701, 5297);
-insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (1490, '2019-07-10 09:15:52', '2020-07-24 16:39:10', 'en espera', 'DNI', 19529284, 5297);
-insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (5562, '2019-01-25 13:33:05', '2020-08-28 07:34:20', 'en espera', 'DNI', 33371405, 9932);
-insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (9341, '2019-06-30 18:08:19', '2019-12-27 11:27:32', 'pagada', 'DNI', 25690192, 6488);
-insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (4207, '2019-07-03 10:43:32', '2020-05-18 03:17:40', 'pagada', 'DNI', 22175155, 6488);
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (1243, '2018-11-01 22:08:46', '2019-11-20 19:58:52', 'confirmada', 'TSS', 36359701, 5297);
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (1490, '2019-07-10 09:15:52', '2020-07-24 16:39:10', 'en espera', 'ID', 19529284, 5297);
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (5562, '2019-01-25 13:33:05', '2020-08-28 07:34:20', 'en espera', 'Identity Card', 33371405, 9932);
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (9341, '2019-06-30 18:08:19', '2019-12-27 11:27:32', 'pagada', 'ID', 25690192, 6488);
+insert into reservas (numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) values (4207, '2019-07-03 10:43:32', '2020-05-18 03:17:40', 'pagada', 'Pasaporte', 22175155, 6488);
 
 /*brinda*/
 insert into brinda (vuelo, dia, clase, cant_asientos, precio) values (1, 'Lu', 'Premium', 15, 2000.00);
@@ -81,9 +81,9 @@ insert into brinda (vuelo, dia, clase, cant_asientos, precio) values (2, 'Lu', '
 insert into brinda (vuelo, dia, clase, cant_asientos, precio) values (2, 'Lu', 'Normal', 25, 1600.25);
 
 /*posee*/
-insert into posee (clase, comodidad) values ('Premium', 'Comodidad Alta');
-insert into posee (clase, comodidad) values ('Normal', 'Comodidad Media');
-insert into posee (clase, comodidad) values ('Fea', 'Comodidad Baja');
+insert into posee (clase, comodidad) values ('Premium', 3);
+insert into posee (clase, comodidad) values ('Normal', 2);
+insert into posee (clase, comodidad) values ('Fea', 1);
 
 /*reserva_vuelo_clase*/
 insert into reserva_vuelo_clase values (1243, 1, '2018-10-23 10:45:38', 'Premium');
