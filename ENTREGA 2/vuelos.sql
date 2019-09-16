@@ -57,8 +57,8 @@ CREATE TABLE modelos_avion(
 CREATE TABLE salidas(
 	vuelo VARCHAR(45) NOT NULL,
 	dia VARCHAR(2) NOT NULL CONSTRAINT ingresar_dia_salida CHECK(dia IN ('Do','Lu','Ma','Mi','Ju','Vi','Sa')),
-	hora_sale DATE NOT NULL,
-	hora_llega DATE NOT NULL,
+	hora_sale DATETIME NOT NULL,
+	hora_llega DATETIME NOT NULL,
 	modelo_avion VARCHAR(45) NOT NULL,
 
 	CONSTRAINT pk_salidas PRIMARY KEY(vuelo, dia),
@@ -72,7 +72,7 @@ CREATE TABLE salidas(
 
 CREATE TABLE instancias_vuelo(
 	vuelo VARCHAR(45) NOT NULL,
-	fecha DATE NOT NULL,
+	fecha DATETIME NOT NULL,
 	dia VARCHAR(2) NOT NULL,
 	estado VARCHAR(45) NOT NULL,
 
@@ -129,8 +129,8 @@ CREATE TABLE empleados(
 
 CREATE TABLE reservas(
 	numero INT UNSIGNED NOT NULL,
-	fecha DATE NOT NULL,
-	vencimiento DATE NOT NULL,
+	fecha DATETIME NOT NULL,
+	vencimiento DATETIME NOT NULL,
 	estado VARCHAR(45) NOT NULL,
 	doc_tipo VARCHAR(45) NOT NULL,
 	doc_nro BIGINT UNSIGNED NOT NULL,
@@ -175,7 +175,7 @@ CREATE TABLE posee(
 CREATE TABLE reserva_vuelo_clase(
 	numero INT UNSIGNED NOT NULL,
 	vuelo VARCHAR(45) NOT NULL,
-	fecha_vuelo DATE NOT NULL,
+	fecha_vuelo DATETIME NOT NULL,
 	clase VARCHAR(45) NOT NULL,
 
 	CONSTRAINT pk_reserva_vuelo_clase PRIMARY KEY(numero, vuelo, fecha_vuelo),
@@ -193,11 +193,11 @@ CREATE VIEW vuelos_disponibles AS
 SELECT s.vuelo, s.modelo_avion, iv.fecha, s.dia,
 vp.aeropuerto_salida, a_sale.nombre AS nombre_salida, a_sale.ciudad AS ciudad_salida, a_sale.estado AS estado_salida, a_sale.pais AS pais_salida,
 
-vp.aeropuerto_llegada, a_llega.nombre AS nombre_llegada, a_llega.ciudad AS ciudad_llegada, a_llega.estado AS sestado_llegada, a_llega.pais AS pais_llegada,
+vp.aeropuerto_llegada, a_llega.nombre AS nombre_llegada, a_llega.ciudad AS ciudad_llegada, a_llega.estado AS estado_llegada, a_llega.pais AS pais_llegada,
 
-s.hora_sale, s.hora_llega, MOD((s.hora_llega+24-s.hora_sale),24) AS tiempo_estimado,
+	s.hora_sale, s.hora_llega, TIMEDIFF(s.hora_llega, s.hora_sale) AS tiempo_estimado,
 
-b.precio, (b.cant_asientos * (1 + c.porcentaje) - ( SELECT COUNT(*) FROM reserva_vuelo_clase WHERE (reserva_vuelo_clase.vuelo = b.vuelo) AND (reserva_vuelo_clase.clase = b.clase)))
+b.precio, TRUNCATE((b.cant_asientos * (1 + c.porcentaje) - ( SELECT COUNT(*) FROM reserva_vuelo_clase WHERE (reserva_vuelo_clase.vuelo = b.vuelo) AND (reserva_vuelo_clase.clase = b.clase))), 0)
 
 FROM salidas AS s, vuelos_programados AS vp, aeropuertos AS a_sale, aeropuertos AS a_llega,
 instancias_vuelo AS iv, brinda AS b, clases AS c
