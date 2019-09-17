@@ -235,7 +235,7 @@ SELECT s.vuelo, s.modelo_avion, iv.fecha, s.dia,
 
 	s.hora_sale, s.hora_llega, TIMEDIFF(DATE_ADD(s.hora_llega, INTERVAL ubi_lleg.huso HOUR), DATE_ADD(s.hora_sale, INTERVAL ubi_sal.huso HOUR)) AS tiempo_estimado,
 
-	b.precio, TRUNCATE((b.cant_asientos * (1 + c.porcentaje) - ( SELECT COUNT(*) FROM reserva_vuelo_clase WHERE (reserva_vuelo_clase.vuelo = b.vuelo) AND (reserva_vuelo_clase.clase = b.clase))), 0)
+	b.precio, TRUNCATE((b.cant_asientos * (1 + c.porcentaje) - ( SELECT COUNT(*) FROM reserva_vuelo_clase WHERE (reserva_vuelo_clase.vuelo = b.vuelo) AND (reserva_vuelo_clase.clase = b.clase))), 0) as cant_asientos
 
 FROM salidas AS s, vuelos_programados AS vp, aeropuertos AS a_sale, aeropuertos AS a_llega,
 instancias_vuelo AS iv, brinda AS b, clases AS c, ubicacion AS ubi_lleg, ubicacion AS ubi_sal
