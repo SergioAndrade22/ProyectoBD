@@ -143,29 +143,6 @@ public class MainWindow extends JFrame{
 		
 		//------------------------------------------BOTONES--------------------------------------------------------------
 		 
-		@SuppressWarnings("serial")
-		final class TablaVuelosModel extends DefaultTableModel{
-        	// define la clase java asociada a cada columna de la tabla
-   	        private Class<?>[] types;
-     	    // define si una columna es editable
-            private boolean[] canEdit;
-            TablaVuelosModel(Class<?>[] classes, String[] names){
-            	super(new String[][] {}, names);
-            	types = classes;
-            	canEdit= new boolean[] { false, false};
-            };             	
-        		             
-            // recupera la clase java de cada columna de la tabla
-            public Class<?> getColumnClass(int columnIndex) 
-            {
-               return types[columnIndex];
-            }
-            // determina si una celda es editable
-            public boolean isCellEditable(int rowIndex, int columnIndex) 
-            {
-               return canEdit[columnIndex];
-            }         	          	            	
-        };
          
 		//Boton Execute
 		JButton submit = new JButton("Execute Statement");
@@ -173,53 +150,28 @@ public class MainWindow extends JFrame{
 		submit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				 try {
-			         Statement stmt = conn.createStatement();
-			         String comando= input.getText();
-			         ResultSet rs = stmt.executeQuery(comando);
-			         ResultSetMetaData rsmd = rs.getMetaData();
-			         int cantColum = rsmd.getColumnCount();
-			         String[] column_name = new String[cantColum];
-			         Class<?>[] column_class = new Class[cantColum];
-			         for (int i = 0; i < cantColum; i++) {
-			        	 column_name[i] = rsmd.getColumnName(i+1);
-			        	 try {
-			        		 column_class[i] = Class.forName(rsmd.getColumnClassName(i+1));
-			        	 }
-			        	 catch(ClassNotFoundException ex) {
-			        		 JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Eror en SQL", JOptionPane.ERROR_MESSAGE);
-			        	 }
-			         }
-			         TableModel model = new TablaVuelosModel(column_class , column_name);
-			       //Tabla
-			         tabla = new JTable(); // Crea una tabla
-			         tabla.setModel(model); // setea el modelo de la tabla  
-			         tabla.setAutoCreateRowSorter(true); // activa el ordenamiento por columnas, para
-			         
-			         int i = 0;
-				         while (rs.next())
-				         {
-				        	
-				            ((DefaultTableModel) tabla.getModel()).setRowCount(i + 1);
-				            // se agregan a la tabla los datos correspondientes cada celda de la fila recuperada
-				            for(int j = 0; j < cantColum; j++) {
-					            tabla.setValueAt(rs.getObject(column_name[j]), i, j);
-				            }
-				            i++;
-				         }
-				         // se cierran los recursos utilizados 
-				         rs.close();
-				         stmt.close();           
-					} catch (SQLException e1) {
-						JOptionPane.showMessageDialog(null, e1.getMessage(), "ERROR: Error en SQL", JOptionPane.ERROR_MESSAGE);
-						System.out.println("SQLException: " + e1.getMessage());
-						System.out.println("SQLState: " + e1.getSQLState());
-						System.out.println("VendorError: " + e1.getErrorCode());
-					}	
-					scrTabla = new JScrollPane(tabla);
+					Statement stmt = conn.createStatement();
+					String comando= input.getText();
+					ResultSet rs = stmt.executeQuery(comando);
+					ResultSetMetaData rsmd = rs.getMetaData();
+					int cantColumn = rsmd.getColumnCount();
+					String[] column_name = new String[cantColumn];
+					Class<?>[] column_class = new Class[cantColumn];
+					        
+					TableModel model = buildModel(column_name, column_class, cantColumn, rsmd);
+					 
+					scrTabla = new JScrollPane(buildTable(model, rs, cantColumn, column_name));
 					scrTabla.setBounds(0, d.height/2+80, d.width, d.height/2-80);
+					// se cierran los recursos utilizados 
+					rs.close();
+					stmt.close();     
 					getContentPane().add(scrTabla, BorderLayout.CENTER);
 					getContentPane().revalidate();
 					getContentPane().repaint();
+				 }
+				 catch(SQLException ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Error en SQL", JOptionPane.ERROR_MESSAGE); 
+				 }
 			}
 		});
 		this.add(submit);
@@ -234,5 +186,74 @@ public class MainWindow extends JFrame{
 		});
 		this.add(clear);
 		this.repaint();
+	}
+		
+	private JTable buildTable(TableModel model, ResultSet rs, int cantColumn, String[] column_name) {
+		try {
+			//Tabla
+			tabla = new JTable(); // Crea una tabla
+			tabla.setModel(model); // setea el modelo de la tabla  
+			tabla.setAutoCreateRowSorter(true); // activa el ordenamiento por columnas, para
+			
+			int i = 0;
+			while (rs.next())
+			{
+				
+				((DefaultTableModel) tabla.getModel()).setRowCount(i + 1);
+				// se agregan a la tabla los datos correspondientes cada celda de la fila recuperada
+				for(int j = 0; j < cantColumn; j++) {
+					tabla.setValueAt(rs.getObject(column_name[j]), i, j);
+				}
+				i++;
+			}      
+			return tabla;
+		} 
+		catch (SQLException e1) {
+			JOptionPane.showMessageDialog(null, e1.getMessage(), "ERROR: Error en SQL", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}	
+	}
+	
+	private TablaVuelosModel buildModel(String[] column_name, Class<?>[] column_class, int cantColum, ResultSetMetaData rsmd) {
+		try {
+		    for (int i = 0; i < cantColum; i++) {
+		    	column_name[i] = rsmd.getColumnName(i+1);
+		    	try {
+		    		column_class[i] = Class.forName(rsmd.getColumnClassName(i+1));
+		    	}
+		    	catch(ClassNotFoundException ex) {
+		    		JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Eror en SQL", JOptionPane.ERROR_MESSAGE);
+		    	}
+		    }
+		    return new TablaVuelosModel(column_class , column_name);
+		}
+		catch(SQLException ex) {
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Error en SQL", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+	}
+
+	final class TablaVuelosModel extends DefaultTableModel{
+		private static final long serialVersionUID = 5346108049766426615L;
+		// define la clase java asociada a cada columna de la tabla
+		private Class<?>[] types;
+		// define si una columna es editable
+		private boolean[] canEdit;
+		TablaVuelosModel(Class<?>[] classes, String[] names){
+			super(new String[][] {}, names);
+			types = classes;
+			canEdit= new boolean[] { false, false};
+		};             	
+		
+		// recupera la clase java de cada columna de la tabla
+		public Class<?> getColumnClass(int columnIndex) 
+		{
+			return types[columnIndex];
+		}
+		// determina si una celda es editable
+		public boolean isCellEditable(int rowIndex, int columnIndex) 
+		{
+			return canEdit[columnIndex];
+		}         	          	            	
 	}
 }
