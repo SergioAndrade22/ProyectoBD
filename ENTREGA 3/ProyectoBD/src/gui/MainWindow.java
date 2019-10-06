@@ -150,6 +150,7 @@ public class MainWindow extends JFrame{
 		submit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				 try {
+					
 					Statement stmt = conn.createStatement();
 					String comando= input.getText();
 					ResultSet rs = stmt.executeQuery(comando);
@@ -157,9 +158,10 @@ public class MainWindow extends JFrame{
 					int cantColumn = rsmd.getColumnCount();
 					String[] column_name = new String[cantColumn];
 					Class<?>[] column_class = new Class[cantColumn];
-					        
-					TableModel model = buildModel(column_name, column_class, cantColumn, rsmd);
-					 
+					
+					TableModel model= null;     
+					model = buildModel(null, null, 0, null); //Inicializa la tabla?
+					model = buildModel(column_name, column_class, cantColumn, rsmd);
 					scrTabla = new JScrollPane(buildTable(model, rs, cantColumn, column_name));
 					scrTabla.setBounds(0, d.height/2+80, d.width, d.height/2-80);
 					// se cierran los recursos utilizados 
@@ -170,7 +172,7 @@ public class MainWindow extends JFrame{
 					getContentPane().repaint();
 				 }
 				 catch(SQLException ex) {
-					JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Error en SQL", JOptionPane.ERROR_MESSAGE); 
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Error in SQL", JOptionPane.ERROR_MESSAGE); 
 				 }
 			}
 		});
@@ -194,7 +196,6 @@ public class MainWindow extends JFrame{
 			tabla = new JTable(); // Crea una tabla
 			tabla.setModel(model); // setea el modelo de la tabla  
 			tabla.setAutoCreateRowSorter(true); // activa el ordenamiento por columnas, para
-			
 			int i = 0;
 			while (rs.next())
 			{
