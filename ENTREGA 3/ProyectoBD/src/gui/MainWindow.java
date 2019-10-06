@@ -4,19 +4,15 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData; //DON'T DELETE Necessary for commented code
-import java.sql.ResultSet; //DON'T DELETE Necessary for commented code
+import java.sql.DatabaseMetaData; 
+import java.sql.ResultSet; 
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import javax.swing.JButton; 
-import javax.swing.JComboBox; //DON'T DELETE Necessary for commented code
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -150,17 +146,17 @@ public class MainWindow extends JFrame{
 		@SuppressWarnings("serial")
 		final class TablaVuelosModel extends DefaultTableModel{
         	// define la clase java asociada a cada columna de la tabla
-   	        private Class[] types;
+   	        private Class<?>[] types;
      	    // define si una columna es editable
             private boolean[] canEdit;
-            TablaVuelosModel(Class[] classes, String[] names){
+            TablaVuelosModel(Class<?>[] classes, String[] names){
             	super(new String[][] {}, names);
             	types = classes;
             	canEdit= new boolean[] { false, false};
             };             	
         		             
             // recupera la clase java de cada columna de la tabla
-            public Class getColumnClass(int columnIndex) 
+            public Class<?> getColumnClass(int columnIndex) 
             {
                return types[columnIndex];
             }
