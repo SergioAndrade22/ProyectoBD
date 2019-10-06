@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData; //DON'T DELETE Necessary for commented code
 import java.sql.ResultSet; //DON'T DELETE Necessary for commented code
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -26,14 +27,12 @@ import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
-//import com.mysql.cj.jdbc.DatabaseMetaData;
 
 public class MainWindow extends JFrame{
 	private JPasswordField password;
 	private java.sql.Connection conn= null;
 	private JTable tabla;
 	private JScrollPane scrTabla;
-	@SuppressWarnings("serial")
 
 	
 	/**
@@ -122,7 +121,6 @@ public class MainWindow extends JFrame{
 		*/try {
 			DatabaseMetaData md = conn.getMetaData();
 			ResultSet rs = md.getTables(null, null, "%", null);
-			md.get
 			int i = 0;
 			String[] aux = new String[20];
 			while (rs.next()) {
@@ -136,8 +134,6 @@ public class MainWindow extends JFrame{
 			
 		}
 		catch(Exception ex) {}
-		
-		
 		
 		
 		//Paneles
@@ -157,11 +153,9 @@ public class MainWindow extends JFrame{
    	        private Class[] types;
      	    // define si una columna es editable
             private boolean[] canEdit;
-            TablaVuelosModel(){
-            	super(new String[][] {},
-            		  new String[]{"Nombre", "Porcentaje"});
-            	types = new Class[] {java.lang.String.class,
-            	                     java.lang.Integer.class};
+            TablaVuelosModel(Class[] classes, String[] names){
+            	super(new String[][] {}, names);
+            	types = classes;
             	canEdit= new boolean[] { false, false};
             };             	
         		             
@@ -176,19 +170,7 @@ public class MainWindow extends JFrame{
                return canEdit[columnIndex];
             }         	          	            	
         };
-        
-        TableModel vuelosModel = 	new TablaVuelosModel();
-        scrTabla = new JScrollPane();
-        getContentPane().add(scrTabla, BorderLayout.CENTER);
-		 //Tabla
-         tabla = new JTable(); // Crea una tabla
-         scrTabla.setViewportView(tabla);
-         tabla.setModel(vuelosModel); // setea el modelo de la tabla  
-         tabla.setAutoCreateRowSorter(true); // activa el ordenamiento por columnas, para
-         tabla.setBounds(0, d.height/2+80, d.width, d.height/2-80);           
-         tabla.setVisible(true);
-         this.add(tabla);
-		 
+         
 		//Boton Execute
 		JButton submit = new JButton("Execute Statement");
 		submit.setBounds(d.width/2-150, d.height/2, 150, 80);
@@ -198,26 +180,50 @@ public class MainWindow extends JFrame{
 			         Statement stmt = conn.createStatement();
 			         String comando= input.getText();
 			         ResultSet rs = stmt.executeQuery(comando);
-						int i = 0;
+			         ResultSetMetaData rsmd = rs.getMetaData();
+			         int cantColum = rsmd.getColumnCount();
+			         String[] column_name = new String[cantColum];
+			         Class<?>[] column_class = new Class[cantColum];
+			         for (int i = 0; i < cantColum; i++) {
+			        	 column_name[i] = rsmd.getColumnName(i+1);
+			        	 try {
+			        		 column_class[i] = Class.forName(rsmd.getColumnClassName(i+1));
+			        	 }
+			        	 catch(ClassNotFoundException ex) {
+			        		 JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Eror en SQL", JOptionPane.ERROR_MESSAGE);
+			        	 }
+			         }
+			         TableModel model = new TablaVuelosModel(column_class , column_name);
+			       //Tabla
+			         tabla = new JTable(); // Crea una tabla
+			         tabla.setModel(model); // setea el modelo de la tabla  
+			         tabla.setAutoCreateRowSorter(true); // activa el ordenamiento por columnas, para
+			         
+			         int i = 0;
 				         while (rs.next())
 				         {
-				        	 // agrega una fila al modelo de la tabla
+				        	
 				            ((DefaultTableModel) tabla.getModel()).setRowCount(i + 1);
 				            // se agregan a la tabla los datos correspondientes cada celda de la fila recuperada
-				            tabla.setValueAt(rs.getString("nombre"), i, 0);
-				            tabla.setValueAt(rs.getFloat("porcentaje"), i, 1);            
+				            for(int j = 0; j < cantColum; j++) {
+					            tabla.setValueAt(rs.getObject(column_name[j]), i, j);
+				            }
 				            i++;
 				         }
 				         // se cierran los recursos utilizados 
 				         rs.close();
-				         stmt.close();
-				         
+				         stmt.close();           
 					} catch (SQLException e1) {
 						JOptionPane.showMessageDialog(null, e1.getMessage(), "ERROR: Error en SQL", JOptionPane.ERROR_MESSAGE);
 						System.out.println("SQLException: " + e1.getMessage());
 						System.out.println("SQLState: " + e1.getSQLState());
 						System.out.println("VendorError: " + e1.getErrorCode());
 					}	
+					scrTabla = new JScrollPane(tabla);
+					scrTabla.setBounds(0, d.height/2+80, d.width, d.height/2-80);
+					getContentPane().add(scrTabla, BorderLayout.CENTER);
+					getContentPane().revalidate();
+					getContentPane().repaint();
 			}
 		});
 		this.add(submit);
