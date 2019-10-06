@@ -25,10 +25,7 @@ import javax.swing.table.TableModel;
 
 
 public class MainWindow extends JFrame{
-	private JPasswordField password;
 	private java.sql.Connection conn= null;
-	private JTable tabla;
-	private JScrollPane scrTabla;
 
 	
 	/**
@@ -71,7 +68,7 @@ public class MainWindow extends JFrame{
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JPanel passPanel = new JPanel();
 		passPanel.setLayout(new FlowLayout());
-		password = new JPasswordField(20);
+		JPasswordField password = new JPasswordField(20);
 		passPanel.add(password);
 		password.setVisible(true);
 		password.setEditable(true);
@@ -116,11 +113,12 @@ public class MainWindow extends JFrame{
 		/* Retrieve table names into an array, create a combo box with it, pretty useless now, might use it later (Not showing combo box on screen for some reason)
 		*/try {
 			DatabaseMetaData md = conn.getMetaData();
-			ResultSet rs = md.getTables(null, null, "%", null);
+			String[] types = {"TABLE"};
+			ResultSet rs = md.getTables(null, null, "%", types);
 			int i = 0;
 			String[] aux = new String[20];
 			while (rs.next()) {
-				aux[i] = rs.getString(3);
+				aux[i] = rs.getString("TABLE_NAME");
 				i++;
 			}
 			String[] tableNames = new String[i];
@@ -129,7 +127,9 @@ public class MainWindow extends JFrame{
 			}
 			
 		}
-		catch(Exception ex) {}
+		catch(SQLException ex) {
+			JOptionPane.showMessageDialog(null, "Error en la definición de las tablas.", "ERROR: SQL Error", JOptionPane.ERROR_MESSAGE);
+		}
 		
 		
 		//Paneles
@@ -160,7 +160,7 @@ public class MainWindow extends JFrame{
 					        
 					TableModel model = buildModel(column_name, column_class, cantColumn, rsmd);
 					 
-					scrTabla = new JScrollPane(buildTable(model, rs, cantColumn, column_name));
+					JScrollPane scrTabla = new JScrollPane(buildTable(model, rs, cantColumn, column_name));
 					scrTabla.setBounds(0, d.height/2+80, d.width, d.height/2-80);
 					// se cierran los recursos utilizados 
 					rs.close();
@@ -191,7 +191,7 @@ public class MainWindow extends JFrame{
 	private JTable buildTable(TableModel model, ResultSet rs, int cantColumn, String[] column_name) {
 		try {
 			//Tabla
-			tabla = new JTable(); // Crea una tabla
+			JTable tabla = new JTable(); // Crea una tabla
 			tabla.setModel(model); // setea el modelo de la tabla  
 			tabla.setAutoCreateRowSorter(true); // activa el ordenamiento por columnas, para
 			
