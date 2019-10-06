@@ -25,7 +25,10 @@ import javax.swing.table.TableModel;
 
 
 public class MainWindow extends JFrame{
+	private JPasswordField password;
 	private java.sql.Connection conn= null;
+	private JTable tabla;
+	private JScrollPane scrTabla;
 
 	
 	/**
@@ -68,7 +71,7 @@ public class MainWindow extends JFrame{
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JPanel passPanel = new JPanel();
 		passPanel.setLayout(new FlowLayout());
-		JPasswordField password = new JPasswordField(20);
+		password = new JPasswordField(20);
 		passPanel.add(password);
 		password.setVisible(true);
 		password.setEditable(true);
@@ -110,34 +113,40 @@ public class MainWindow extends JFrame{
 	private void startFields() {
 		this.getContentPane().removeAll();
 		this.setLayout(null);
-		try {
+		/* Retrieve table names into an array, create a combo box with it, pretty useless now, might use it later (Not showing combo box on screen for some reason)
+		*/try {
 			DatabaseMetaData md = conn.getMetaData();
-			String[] types = {"TABLE"};
-			ResultSet rs = md.getTables(null, null, "%", types);
+			ResultSet rs = md.getTables(null, null, "%", null);
 			int i = 0;
 			String[] aux = new String[20];
 			while (rs.next()) {
-				aux[i] = rs.getString("TABLE_NAME");
+				aux[i] = rs.getString(3);
 				i++;
 			}
 			String[] tableNames = new String[i];
 			for(int j = 0; j < tableNames.length; j++, i--) {
 				tableNames[j] = aux[i];
 			}
+			
 		}
-		catch(SQLException ex) {
-			JOptionPane.showMessageDialog(null, "Error en la definición de las tablas en la base de datos.", "ERROR: SQL Error", JOptionPane.ERROR_MESSAGE);
-		}
+		catch(Exception ex) {}
 		
+		
+		//Paneles
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Dimension d = tk.getScreenSize();
 		JTextArea input = new JTextArea();
 		JScrollPane scrollPane = new JScrollPane(input);
 		scrollPane.setBounds(0, 0, d.width, 250);
 		this.add(scrollPane);
+		       
 		
+		//------------------------------------------BOTONES--------------------------------------------------------------
+		 
+         
+		//Boton Execute
 		JButton submit = new JButton("Execute Statement");
-		submit.setBounds(d.width/2-150, d.height/2-40, 150, 80);
+		submit.setBounds(d.width/2-150, d.height/2, 150, 80);
 		submit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				 try {
@@ -150,15 +159,14 @@ public class MainWindow extends JFrame{
 					Class<?>[] column_class = new Class[cantColumn];
 					        
 					TableModel model = buildModel(column_name, column_class, cantColumn, rsmd);
-					
-					JScrollPane scrTabla = new JScrollPane(buildTable(model, rs, cantColumn, column_name));
+					 
+					scrTabla = new JScrollPane(buildTable(model, rs, cantColumn, column_name));
 					scrTabla.setBounds(0, d.height/2+80, d.width, d.height/2-80);
 					// se cierran los recursos utilizados 
 					rs.close();
 					stmt.close();     
 					getContentPane().add(scrTabla, BorderLayout.CENTER);
 					getContentPane().revalidate();
-					scrTabla.repaint();
 					getContentPane().repaint();
 				 }
 				 catch(SQLException ex) {
@@ -170,7 +178,7 @@ public class MainWindow extends JFrame{
 		
 		//Boton Clear
 		JButton clear = new JButton("Clear Text");
-		clear.setBounds(d.width/2, d.height/2-40, 100, 80);
+		clear.setBounds(d.width/2, d.height/2, 100, 80);
 		clear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				input.setText("");
@@ -183,7 +191,7 @@ public class MainWindow extends JFrame{
 	private JTable buildTable(TableModel model, ResultSet rs, int cantColumn, String[] column_name) {
 		try {
 			//Tabla
-			JTable tabla = new JTable(); // Crea una tabla
+			tabla = new JTable(); // Crea una tabla
 			tabla.setModel(model); // setea el modelo de la tabla  
 			tabla.setAutoCreateRowSorter(true); // activa el ordenamiento por columnas, para
 			
