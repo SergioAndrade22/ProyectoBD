@@ -16,14 +16,13 @@ import java.sql.Statement;
 import javax.swing.JButton; 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.ScrollPaneLayout;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
@@ -126,7 +125,7 @@ public class MainWindow extends JFrame{
 	private void startFields() {
 		this.getContentPane().removeAll();
 		this.setLayout(null);		
-		this.add(mostrarBotonesClases());		
+		this.add(mostrarBotonesClases());
 		
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Dimension d = tk.getScreenSize();
@@ -179,7 +178,6 @@ public class MainWindow extends JFrame{
 					Statement stmt = conn.createStatement();
 					String comando= input.getText();
 					int rs = stmt.executeUpdate(comando);
-				
 					
 				} catch (SQLException ex) {
 					JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Error en SQL", JOptionPane.ERROR_MESSAGE);
@@ -261,6 +259,7 @@ public class MainWindow extends JFrame{
 		for(String name : table_name) {
 			if(name != null) {
 				botones[i]= new JButton(name);
+				botones[i].setName(name);
 				botones[i].setBounds(x, 0, tab, 40);
 				botones[i].addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
@@ -279,28 +278,39 @@ public class MainWindow extends JFrame{
 	private void displayColumns(String table) {
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Dimension d = tk.getScreenSize();
+		Component remove = getContentPane().getComponentAt(0, 290);
 		try {
-			DatabaseMetaData md = conn.getMetaData();
-			ResultSet rs = md.getColumns(null, null, table, null);
-			
 			JScrollPane srcb = new JScrollPane();
 			srcb.setLayout(null);
-			srcb.setBounds(0, d.height/2+80, d.width, d.height/2-80);
+			srcb.setBounds(0, 290, d.width, 40);
 			
-			String[] aux = new String[80];
-			JLabel [] etiquetas= new JLabel[80];
-			int j = 0;
-			while (rs.next()) {
-				aux[j] = rs.getString("COLUNM_NAME");
-				etiquetas[j]= new JLabel(aux[j]);
-				srcb.add(etiquetas[j]);
-				j++;
+			Statement stmt = conn.createStatement();
+			String sql = "DESCRIBE " + table;
+			ResultSet rs = stmt.executeQuery(sql);
+			int i = 0;
+			JLabel[] labels = new JLabel[20];
+			while(rs.next()) {
+				String column = rs.getString("Field");
+				labels[i] = new JLabel(column, SwingConstants.CENTER);
+				i++;
 			}
+			int tab = d.width/i;
+			int x = 0;
+			for (int j = 0; j < i; j++) {
+				labels[j].setBounds(x, 0, tab, 40);
+				srcb.add(labels[j]);
+				x += tab;
+			}
+			rs.close();
+			stmt.close();
+			if (remove != null)
+				getContentPane().remove(remove);
 			getContentPane().add(srcb);
-			
+			getContentPane().revalidate();
+			getContentPane().repaint();
 		}
 		catch(SQLException ex) {
-			
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Error en SQL", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 	
