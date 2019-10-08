@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -14,21 +15,22 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JButton; 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneLayout;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 
 public class MainWindow extends JFrame{
-	private JPasswordField password;
 	private java.sql.Connection conn= null;
-	private JTable tabla;
-	private JScrollPane scrTabla;
+	private String[] table_name;
 
 	
 	/**
@@ -61,6 +63,7 @@ public class MainWindow extends JFrame{
 		super();
 		initialize();
 		
+		
 	}
 
 	/**
@@ -71,7 +74,7 @@ public class MainWindow extends JFrame{
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JPanel passPanel = new JPanel();
 		passPanel.setLayout(new FlowLayout());
-		password = new JPasswordField(20);
+		JPasswordField password = new JPasswordField(20);
 		passPanel.add(password);
 		password.setVisible(true);
 		password.setEditable(true);
@@ -100,39 +103,31 @@ public class MainWindow extends JFrame{
 			conn = java.sql.DriverManager. getConnection(url, user, pass);
 			this.setExtendedState(JFrame.MAXIMIZED_BOTH);
 			this.setVisible(true);
+			DatabaseMetaData md = conn.getMetaData();
+			String[] types = {"TABLE"};
+			ResultSet rs = md.getTables(null, null, "%", types);
+			int i = 0;
+			String[] aux = new String[20];
+			while (rs.next()) {
+				aux[i] = rs.getString("TABLE_NAME");
+				i++;
+			}
+			table_name = new String[i];
+			for(int j = 0; j < table_name.length; j++, i--) {
+				table_name[j] = aux[i];
+			}
 			startFields();
 		}
 		catch (java.sql.SQLException ex){
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Connection Refused", JOptionPane.ERROR_MESSAGE);
-			System.out.println("SQLException: " + ex.getMessage());
-			System.out.println("SQLState: " + ex.getSQLState());
-			System.out.println("VendorError: " + ex.getErrorCode());
 		}
 	}
 	
 	private void startFields() {
 		this.getContentPane().removeAll();
-		this.setLayout(null);
-		/* Retrieve table names into an array, create a combo box with it, pretty useless now, might use it later (Not showing combo box on screen for some reason)
-		*/try {
-			DatabaseMetaData md = conn.getMetaData();
-			ResultSet rs = md.getTables(null, null, "%", null);
-			int i = 0;
-			String[] aux = new String[20];
-			while (rs.next()) {
-				aux[i] = rs.getString(3);
-				i++;
-			}
-			String[] tableNames = new String[i];
-			for(int j = 0; j < tableNames.length; j++, i--) {
-				tableNames[j] = aux[i];
-			}
-			
-		}
-		catch(Exception ex) {}
+		this.setLayout(null);		
+		this.add(mostrarBotonesClases());		
 		
-		
-		//Paneles
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Dimension d = tk.getScreenSize();
 		JTextArea input = new JTextArea();
@@ -140,12 +135,7 @@ public class MainWindow extends JFrame{
 		scrollPane.setBounds(0, 0, d.width, 250);
 		this.add(scrollPane);
 		       
-		
-		//------------------------------------------BOTONES--------------------------------------------------------------
-		 
-         
-		//Boton Execute
-		JButton submit = new JButton("Execute Statement");
+		JButton submit = new JButton("Show Database");
 		submit.setBounds(d.width/2-150, d.height/2, 150, 80);
 		submit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -160,11 +150,15 @@ public class MainWindow extends JFrame{
 					        
 					TableModel model = buildModel(column_name, column_class, cantColumn, rsmd);
 					 
-					scrTabla = new JScrollPane(buildTable(model, rs, cantColumn, column_name));
+					JScrollPane scrTabla = new JScrollPane(buildTable(model, rs, cantColumn, column_name));
+					scrTabla.setName("Scroll Tabla");
 					scrTabla.setBounds(0, d.height/2+80, d.width, d.height/2-80);
 					// se cierran los recursos utilizados 
 					rs.close();
-					stmt.close();     
+					stmt.close(); 
+					Component comp = getContentPane().getComponentAt(0, d.height/2+80); 
+					if(comp != null)
+						getContentPane().remove(comp);
 					getContentPane().add(scrTabla, BorderLayout.CENTER);
 					getContentPane().revalidate();
 					getContentPane().repaint();
@@ -176,6 +170,23 @@ public class MainWindow extends JFrame{
 		});
 		this.add(submit);
 		
+		//Boton Execute
+		JButton execute = new JButton("Execute Statement");
+		execute.setBounds(d.width/2+100, d.height/2, 150, 80);
+		execute.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					Statement stmt = conn.createStatement();
+					String comando= input.getText();
+					int rs = stmt.executeUpdate(comando);
+				
+					
+				} catch (SQLException ex) {
+					JOptionPane.showMessageDialog(null, ex.getMessage(), "ERROR: Error en SQL", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		this.add(execute);
 		//Boton Clear
 		JButton clear = new JButton("Clear Text");
 		clear.setBounds(d.width/2, d.height/2, 100, 80);
@@ -184,6 +195,7 @@ public class MainWindow extends JFrame{
 				input.setText("");
 			}
 		});
+
 		this.add(clear);
 		this.repaint();
 	}
@@ -191,7 +203,7 @@ public class MainWindow extends JFrame{
 	private JTable buildTable(TableModel model, ResultSet rs, int cantColumn, String[] column_name) {
 		try {
 			//Tabla
-			tabla = new JTable(); // Crea una tabla
+			JTable tabla = new JTable(); // Crea una tabla
 			tabla.setModel(model); // setea el modelo de la tabla  
 			tabla.setAutoCreateRowSorter(true); // activa el ordenamiento por columnas, para
 			
@@ -233,6 +245,65 @@ public class MainWindow extends JFrame{
 		}
 	}
 
+	//Botones clases
+	private JScrollPane mostrarBotonesClases() {
+		JButton [] botones= new JButton[table_name.length];
+		
+		Toolkit tk = Toolkit.getDefaultToolkit();
+		Dimension d = tk.getScreenSize();
+		int tab = d.width/(table_name.length-1);
+		
+		int i=0;
+		int x=0;
+		JScrollPane srcb = new JScrollPane();
+		srcb.setLayout(null);
+		srcb.setBounds(0, 250, d.width, 40);
+		for(String name : table_name) {
+			if(name != null) {
+				botones[i]= new JButton(name);
+				botones[i].setBounds(x, 0, tab, 40);
+				botones[i].addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						JButton source = (JButton) e.getSource();
+						displayColumns(source.getName());
+					}
+				});
+				srcb.add(botones[i]);
+				x+=tab;
+				i++;
+			}
+		}
+		return srcb;
+	}
+	
+	private void displayColumns(String table) {
+		Toolkit tk = Toolkit.getDefaultToolkit();
+		Dimension d = tk.getScreenSize();
+		try {
+			DatabaseMetaData md = conn.getMetaData();
+			ResultSet rs = md.getColumns(null, null, table, null);
+			
+			JScrollPane srcb = new JScrollPane();
+			srcb.setLayout(null);
+			srcb.setBounds(0, d.height/2+80, d.width, d.height/2-80);
+			
+			String[] aux = new String[80];
+			JLabel [] etiquetas= new JLabel[80];
+			int j = 0;
+			while (rs.next()) {
+				aux[j] = rs.getString("COLUNM_NAME");
+				etiquetas[j]= new JLabel(aux[j]);
+				srcb.add(etiquetas[j]);
+				j++;
+			}
+			getContentPane().add(srcb);
+			
+		}
+		catch(SQLException ex) {
+			
+		}
+	}
+	
 	final class TablaVuelosModel extends DefaultTableModel{
 		private static final long serialVersionUID = 5346108049766426615L;
 		// define la clase java asociada a cada columna de la tabla
@@ -256,4 +327,6 @@ public class MainWindow extends JFrame{
 			return canEdit[columnIndex];
 		}         	          	            	
 	}
+	
+
 }
