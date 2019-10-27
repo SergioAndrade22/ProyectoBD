@@ -45,16 +45,17 @@ public class EmpWindow extends JFrame{
 	 * Create the application.
 	 */
 	public EmpWindow() {
-		initialize();
+		initialize(this);
 	}
-
+	
+	
 	/**
 	 * Initialize the contents of the frame.
 	 */
-	private void initialize() {
-		this.setBounds(100, 100, 260, 120);
-		this.setResizable(false);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	private void initialize(JFrame frame) {
+		frame.setBounds(100, 100, 260, 120);
+		frame.setResizable(false);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JPanel passPanel = new JPanel();
 		passPanel.setLayout(new FlowLayout());
 		JLabel inserte = new JLabel("Inserte Legajo: ");
@@ -76,29 +77,35 @@ public class EmpWindow extends JFrame{
           public void actionPerformed(ActionEvent evt) {
              String pass = String.valueOf(password.getPassword());
              String nLeg = String.valueOf(legajo.getText());
-             tryConnect(nLeg, pass);
+             if(tryConnect(nLeg, pass)){
+	             JFrame empleado= new Empleado();
+	             empleado.setVisible(true);
+	             frame.dispose();
+             }
           }
         });
 		submit.setPreferredSize(new Dimension(80, 30));
-		this.getRootPane().setDefaultButton(submit);
+		frame.getRootPane().setDefaultButton(submit);
 		passPanel.add(submit);
-		this.add(passPanel);
+		frame.add(passPanel);
 		passPanel.setBounds(100, 100, 240, 100);
 	}
-
-	private void tryConnect(String legajo, String pass) {
+	
+	
+	private boolean tryConnect(String legajo, String pass) {
 		String server = "localhost:3306";
 		String dataBase = "vuelos";
 		String user = "admin";
 		String password = "admin";
 		String url = "jdbc:mysql://" + server + "/" +dataBase+
 		"?serverTimezone=America/Argentina/Buenos_Aires";
+		boolean found = false;
 		try {
 			conn = DriverManager.getConnection(url, user, password);
 			Statement stmt = conn.createStatement();
 			String comando = "SELECT * FROM EMPLEADOS WHERE legajo = ' " + legajo + "' AND password = md5('" + pass + "')";
 			ResultSet rs = stmt.executeQuery(comando);
-			boolean found = false;
+			
 			while(!found && rs.next()) {
 				found = null != rs.getString("legajo");
 			}
@@ -113,5 +120,6 @@ public class EmpWindow extends JFrame{
 		catch(SQLException ex) {
 			JOptionPane.showMessageDialog(null, ex.getMessage(), "Connection Refused", JOptionPane.ERROR_MESSAGE);
 		}
+		return found;
 	}
 }
