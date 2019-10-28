@@ -346,7 +346,7 @@ VALUES ('MDZ', 'Gdor. Francisco Gabrielli', '(54)02614480017', 'diremdz', 'Argen
         VALUES (5, 'BC1', CONCAT(YEAR(DATE_ADD(NOW(), INTERVAL 1 YEAR)),'-01-02'), 'Primera');
 
         # reservas del vuelo CB2 del 201X-01-05
-        INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) 
+    INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) 
         VALUES (6, 'CB2', CONCAT(YEAR(DATE_ADD(NOW(), INTERVAL 1 YEAR)),'-01-05'), 'Turista');
 	INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) 
         VALUES (7, 'CB2', CONCAT(YEAR(DATE_ADD(NOW(), INTERVAL 1 YEAR)),'-01-05'), 'Turista');
@@ -359,6 +359,21 @@ VALUES ('MDZ', 'Gdor. Francisco Gabrielli', '(54)02614480017', 'diremdz', 'Argen
         VALUES (10, 'CB2', CONCAT(YEAR(DATE_ADD(NOW(), INTERVAL 1 YEAR)),'-01-05'), 'Primera');
 	
 #---------------------------------------------------------------------------------------------------------------------------
+
+INSERT INTO asientos_reservados(vuelo, fecha, clase) 
+        VALUES ('BC1', CONCAT(YEAR(DATE_ADD(NOW(), INTERVAL 1 YEAR)),'-01-02'), 'Turista');
+
+	INSERT INTO asientos_reservados(vuelo, fecha, clase) 
+        VALUES ('BC1', CONCAT(YEAR(DATE_ADD(NOW(), INTERVAL 1 YEAR)),'-01-02'), 'Primera');
+
+        # reservas del vuelo CB2 del 201X-01-05
+    INSERT INTO asientos_reservados(vuelo, fecha, clase) 
+        VALUES ('CB2', CONCAT(YEAR(DATE_ADD(NOW(), INTERVAL 1 YEAR)),'-01-05'), 'Turista');
+	
+	INSERT INTO asientos_reservados(vuelo, fecha, clase) 
+        VALUES ('CB2', CONCAT(YEAR(DATE_ADD(NOW(), INTERVAL 1 YEAR)),'-01-05'), 'Primera');
+
+
 
 DROP FUNCTION dia;
 

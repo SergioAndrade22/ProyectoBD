@@ -1,3 +1,8 @@
+DROP DATABASE vuelos;
+drop user cliente;
+drop user admin@localhost;
+drop user empleado;
+
 CREATE DATABASE vuelos;
 
 USE vuelos;
@@ -82,7 +87,7 @@ CREATE TABLE instancias_vuelo(
 	estado VARCHAR(45),
 
 	CONSTRAINT pk_instancia_vuelo
-		PRIMARY KEY (vuelo, fecha, dia),
+		PRIMARY KEY (vuelo, fecha),
 
 	CONSTRAINT fk_instancia_vuelo_vuelo
 		FOREIGN KEY(vuelo, dia) REFERENCES salidas(vuelo, dia) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -206,6 +211,24 @@ CREATE TABLE reserva_vuelo_clase(
 		FOREIGN KEY(clase) REFERENCES clases(nombre) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE asientos_reservados(
+	vuelo VARCHAR(45) NOT NULL,
+	fecha DATE NOT NULL,
+	clase VARCHAR(45) NOT NULL,
+	cantidad INT UNSIGNED AUTO_INCREMENT,
+
+	CONSTRAINT pk_asientos_reservados
+		PRIMARY KEY(vuelo, fecha, clase),
+
+	CONSTRAINT fk_asientos_reservados_instancias_vuelo
+		FOREIGN KEY(vuelo, fecha) REFERENCES instancias_vuelo(vuelo, fecha) ON DELETE RESTRICT ON UPDATE CASCADE,
+
+	CONSTRAINT fk_asientos_reservados_clase
+		FOREIGN KEY (clase) REFERENCES clases(nombre) ON DELETE RESTRICT ON UPDATE CASCADE,
+
+	KEY(cantidad)
+) ENGINE=InnoDB;
+
 CREATE VIEW vuelos_disponibles AS
 
 SELECT DISTINCT s.vuelo, s.modelo_avion, iv.fecha, s.dia,
@@ -236,3 +259,33 @@ GRANT ALL PRIVILEGES ON vuelos.reserva_vuelo_clase TO 'empleado'@'%';
 
 CREATE USER 'cliente'@'%' IDENTIFIED BY 'cliente';
 GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%';
+
+DELIMITER !
+
+CREATE PROCEDURE realizarReservarIda(IN vuelo VARCHAR(45), fvu DATE, c VARCHAR(45), f DATE, dt VARCHAR(45), dn BIGINT, l BIGINT, OUT res BOOLEAN)
+BEGIN
+	DECLARE e VARCHAR(45);
+	DECLARE cond BIT;
+	SET cond = asientosLibres(vuelo, c);
+	IF cond THEN
+	SET e = 'Confirmada';
+	ELSE
+		SET e = 'En espera';
+	END IF;
+	#Asumimos que la fecha de vencimiento de una reserva es la misma que el dia del vuelo.
+  INSERT INTO reservas(fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) VALUES(f, fvu, e, dt, dn, l);
+  INSERT INTO reserva_vuelo_clase(vuelo, fecha_vuelo, clase) VALUES(vuelo, fvu, c);
+END; !
+
+CREATE FUNCTION asientosLibres(vu VARCHAR(45), cl VARCHAR(45)) RETURNS BIT
+DETERMINISTIC
+BEGIN
+	DECLARE soli, fis INT;
+	DECLARE res BIT;
+	SELECT COUNT(*) INTO soli FROM reserva_vuelo_clase WHERE reserva_vuelo_clase.vuelo = vu AND reserva_vuelo_clase.clase = cl;
+	SELECT cant_asientos INTO fis FROM brinda WHERE brinda.vuelo = vu AND brinda.clase = cl;
+	SET res = fis > soli;
+	RETURN res;
+END; !
+
+ DELIMITER ;

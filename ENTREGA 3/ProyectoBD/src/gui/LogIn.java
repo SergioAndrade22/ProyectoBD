@@ -60,7 +60,7 @@ public class LogIn extends JFrame{
 		JButton buttonEmp = new JButton("Empleado LogIn");
 		buttonEmp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFrame nframe = new EmpWindow();
+				JFrame nframe = new LogInEmpleado();
 				nframe.setVisible(true);
 				frame.dispose();
 			}
