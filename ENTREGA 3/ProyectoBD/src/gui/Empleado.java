@@ -182,7 +182,8 @@ public class Empleado extends JFrame{
 		
 		ButtonGroup bg = new ButtonGroup();
 		bg.add(idaVuelta);
-		bg.add(ida);
+		bg.add(ida);	
+		
 		
 		JButton consultar = new JButton("Consultar");
 		consultar.addActionListener(new ActionListener() {
@@ -230,6 +231,13 @@ public class Empleado extends JFrame{
 												return toReturn;
 											}
 										};
+										tablaMostrar.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+											
+											public void valueChanged(ListSelectionEvent arg0) {
+												Reservar res= Reservar.getInstance(tablaIda, tablaMostrar, conn, legajo, false);
+												tablaMostrar.getParent().add(res);
+											}
+										});
 										Object[] labels= new Object[columnas];
 										for(int i= 0; i < columnas; i++){
 											labels[i]= md2.getColumnLabel(i+1);
@@ -283,6 +291,18 @@ public class Empleado extends JFrame{
 													return toReturn;
 												}
 											};
+											tablaMostrar.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+												
+												public void valueChanged(ListSelectionEvent arg0) {
+													Reservar res = Reservar.getInstance(tablaVuelta, tablaMostrar, conn, legajo, true);
+													Component comp = tablaMostrar.getParent().getComponentAt(250, 50);
+													if(comp != null)
+														tablaMostrar.getParent().remove(comp);
+													tablaMostrar.getParent().add(res);
+													res.repaint();
+													res.revalidate();
+												}
+											});
 											Object[] labels= new Object[columnas];
 											for(int i= 0; i < columnas; i++){
 												labels[i]= md2.getColumnLabel(i+1);
