@@ -262,28 +262,51 @@ GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%';
 
 DELIMITER !
 
-CREATE PROCEDURE realizarReservarIda(IN vuelo VARCHAR(45), fvu DATE, c VARCHAR(45), f DATE, dt VARCHAR(45), dn BIGINT, l BIGINT, OUT res BOOLEAN)
+CREATE PROCEDURE realizarReservaIda(IN vuelo VARCHAR(45), IN fvu DATE, IN c VARCHAR(45), IN f DATE,IN dt VARCHAR(45), IN dn BIGINT, IN l BIGINT, OUT nres BOOLEAN)
 BEGIN
 	DECLARE e VARCHAR(45);
-	DECLARE cond BIT;
-	SET cond = asientosLibres(vuelo, c);
+	DECLARE cond BOOLEAN;
+	START TRANSACTION;
+	SET cond = asientosLibres(vuelo, c, fvu);
 	IF cond THEN
-	SET e = 'Confirmada';
+		SET e = 'Confirmada';
 	ELSE
 		SET e = 'En espera';
 	END IF;
 	#Asumimos que la fecha de vencimiento de una reserva es la misma que el dia del vuelo.
   INSERT INTO reservas(fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) VALUES(f, fvu, e, dt, dn, l);
-  INSERT INTO reserva_vuelo_clase(vuelo, fecha_vuelo, clase) VALUES(vuelo, fvu, c);
+	SELECT LAST_INSERT_ID() INTO nres FOR UPDATE;
+  INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) VALUES(nres, vuelo, fvu, c);
+	COMMIT;
 END; !
 
-CREATE FUNCTION asientosLibres(vu VARCHAR(45), cl VARCHAR(45)) RETURNS BIT
+CREATE PROCEDURE realizarReservaIdaVuelta(IN vi VARCHAR(45), IN vv VARCHAR(45), IN fvui DATE, IN fvuv DATE, IN ci VARCHAR(45), IN cv VARCHAR(45), IN f DATE, IN dt VARCHAR(45), IN dn BIGINT, IN l BIGINT)
+BEGIN
+	DECLARE e VARCHAR(45);
+	DECLARE cond BOOLEAN;
+	DECLARE nres INT;
+	START TRANSACTION;
+	CALL realizarReservaIda(vi, fvui, ci, f, dt, dn, l, nres);
+	SET cond = asientosLibres(vv, cv, fvuv);
+	IF cond THEN
+		SET e = 'Confirmada';
+	ELSE
+		SET e = 'En espera';
+	END IF;
+	#Asumimos que la fecha de vencimiento de una reserva es la misma que el dia del vuelo.
+  INSERT INTO reservas(numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) VALUES(nres, f, fvuv, e, dt, dn, l);
+	SELECT LAST_INSERT_ID() INTO nres FOR UPDATE;
+  INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) VALUES(nres, vv, fvuv, cv);
+	COMMIT;
+END; !
+
+CREATE FUNCTION asientosLibres(vu VARCHAR(45), cl VARCHAR(45), fecha DATE) RETURNS BOOLEAN
 DETERMINISTIC
 BEGIN
 	DECLARE soli, fis INT;
-	DECLARE res BIT;
-	SELECT COUNT(*) INTO soli FROM reserva_vuelo_clase WHERE reserva_vuelo_clase.vuelo = vu AND reserva_vuelo_clase.clase = cl;
-	SELECT cant_asientos INTO fis FROM brinda WHERE brinda.vuelo = vu AND brinda.clase = cl;
+	DECLARE res BOOLEAN;
+	SELECT COUNT(*) INTO soli FROM reserva_vuelo_clase WHERE reserva_vuelo_clase.vuelo = vu AND reserva_vuelo_clase.clase = cl AND reserva_vuelo_clase.fecha_vuelo = fecha FOR UPDATE;
+	SELECT cant_asientos INTO fis FROM brinda, instancias_vuelo WHERE brinda.vuelo = vu AND brinda.vuelo = instancias_vuelo.vuelo AND brinda.clase = cl AND instancias_vuelo.fecha = fecha AND brinda.dia = instancias_vuelo.dia FOR UPDATE;
 	SET res = fis > soli;
 	RETURN res;
 END; !
