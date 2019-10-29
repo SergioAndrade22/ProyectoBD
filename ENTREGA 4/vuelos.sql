@@ -262,41 +262,74 @@ GRANT SELECT ON vuelos.vuelos_disponibles TO 'cliente'@'%';
 
 DELIMITER !
 
-CREATE PROCEDURE realizarReservaIda(IN vuelo VARCHAR(45), IN fvu DATE, IN c VARCHAR(45), IN f DATE,IN dt VARCHAR(45), IN dn BIGINT, IN l BIGINT, OUT nres BOOLEAN)
+CREATE PROCEDURE realizarReservaIda(IN vuelo VARCHAR(45), IN fechaVuelo DATE, IN clase VARCHAR(45), IN fecha DATE,IN docTipo VARCHAR(45), IN docNro BIGINT, IN legajo BIGINT)
 BEGIN
-	DECLARE e VARCHAR(45);
+	DECLARE estado VARCHAR(45);
 	DECLARE cond BOOLEAN;
+	DECLARE nres INT;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			SELECT 'SQLEXCEPTION! Se ha producido un error' AS resultado;
+			ROLLBACK;
+		END;
 	START TRANSACTION;
-	SET cond = asientosLibres(vuelo, c, fvu);
-	IF cond THEN
-		SET e = 'Confirmada';
+	IF NOT EXISTS (SELECT * FROM pasajeros WHERE pasajeros.doc_tipo = docTipo AND pasajeros.doc_nro = docNro) OR
+		NOT EXISTS (SELECT * FROM vuelos_programados WHERE vuelos_programados.numero = vuelo) THEN
+			SELECT 'ERROR! Corroborar los datos ingresados' AS resultado;
 	ELSE
-		SET e = 'En espera';
+		SET cond = asientosLibres(vuelo, clase, fechaVuelo);
+		IF cond THEN
+			SET estado = 'Confirmada';
+		ELSE
+			SET estado = 'En espera';
+		END IF;
+		#Asumimos que la fecha de vencimiento de una reserva es la misma que el dia del vuelo.
+	  INSERT INTO reservas(fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) VALUES(fecha, DATE_ADD(fechaVuelo, INTERVAL -15 DAY), estado, docTipo, docNro, legajo);
+		SELECT LAST_INSERT_ID() INTO nres FOR UPDATE;
+	  INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) VALUES(nres, vuelo, fechaVuelo, clase);
+		INSERT INTO asientos_reservados(vuelo, fecha, clase) VALUES(vuelo, fechaVuelo, clase);
 	END IF;
-	#Asumimos que la fecha de vencimiento de una reserva es la misma que el dia del vuelo.
-  INSERT INTO reservas(fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) VALUES(f, fvu, e, dt, dn, l);
-	SELECT LAST_INSERT_ID() INTO nres FOR UPDATE;
-  INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) VALUES(nres, vuelo, fvu, c);
 	COMMIT;
 END; !
 
-CREATE PROCEDURE realizarReservaIdaVuelta(IN vi VARCHAR(45), IN vv VARCHAR(45), IN fvui DATE, IN fvuv DATE, IN ci VARCHAR(45), IN cv VARCHAR(45), IN f DATE, IN dt VARCHAR(45), IN dn BIGINT, IN l BIGINT)
+CREATE PROCEDURE realizarReservaIdaVuelta(IN vueloIda VARCHAR(45), IN vueloVuelta VARCHAR(45), IN fechaVueloIda DATE, IN fechaVueloVuelta DATE, IN claseIda VARCHAR(45), IN claseVuelta VARCHAR(45), IN fecha DATE, IN docTipo VARCHAR(45), IN docNro BIGINT, IN legajo BIGINT)
 BEGIN
-	DECLARE e VARCHAR(45);
+	DECLARE estadoIda, estadoVuelta VARCHAR(45);
 	DECLARE cond BOOLEAN;
 	DECLARE nres INT;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			SELECT 'SQLEXCEPTION! Se ha producido un error' AS resultado;
+			ROLLBACK;
+		END;
 	START TRANSACTION;
-	CALL realizarReservaIda(vi, fvui, ci, f, dt, dn, l, nres);
-	SET cond = asientosLibres(vv, cv, fvuv);
-	IF cond THEN
-		SET e = 'Confirmada';
+	IF NOT EXISTS (SELECT * FROM pasajeros WHERE pasajeros.doc_tipo = docTipo AND pasajeros.doc_nro = docNro) OR
+		NOT EXISTS (SELECT * FROM vuelos_programados WHERE vuelos_programados.numero = vueloIda) OR
+		NOT EXISTS (SELECT * FROM vuelos_programados WHERE vuelos_programados.numero = vueloVuelta) THEN
+			SELECT 'ERROR! Corroborar los datos ingresados' AS resultado;
 	ELSE
-		SET e = 'En espera';
+		#Seccion para reserva ida
+		SET cond = asientosLibres(vueloIda, claseIda, fechaVueloIda);
+		IF cond THEN
+			SET estadoIda = 'Confirmada';
+		ELSE
+			SET estadoIda = 'En espera';
+		END IF;
+		INSERT INTO reservas(fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) VALUES(fecha, DATE_ADD(fechaVueloIda, INTERVAL -15 DAY), estadoIda, docTipo, docNro, legajo);
+		SELECT LAST_INSERT_ID() INTO nres FOR UPDATE;
+	  INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) VALUES(nres, vueloIda, fechaVueloIda, claseIda);
+		#Fin seccion para reserva ida
+		#Seccion para reserva ida-vuelta
+		SET cond = asientosLibres(vueloVuelta, claseVuelta, fechaVueloVuelta);
+		IF cond THEN
+			SET estadoVuelta = 'Confirmada';
+		ELSE
+			SET estadoVuelta = 'En espera';
+		END IF;
+		#Asumimos que la fecha de vencimiento de una reserva es la misma que el dia del vuelo.
+	  INSERT INTO reservas(numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) VALUES(nres, fecha, DATE_ADD(fechaVueloVuelta, INTERVAL -15 DAY), estadoVuelta, docTipo, docNro, legajo);
+	  INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) VALUES(nres, vueloVuelta, fechaVueloVuelta, claseVuelta);
 	END IF;
-	#Asumimos que la fecha de vencimiento de una reserva es la misma que el dia del vuelo.
-  INSERT INTO reservas(numero, fecha, vencimiento, estado, doc_tipo, doc_nro, legajo) VALUES(nres, f, fvuv, e, dt, dn, l);
-	SELECT LAST_INSERT_ID() INTO nres FOR UPDATE;
-  INSERT INTO reserva_vuelo_clase(numero, vuelo, fecha_vuelo, clase) VALUES(nres, vv, fvuv, cv);
 	COMMIT;
 END; !
 
